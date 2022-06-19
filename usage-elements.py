@@ -95,8 +95,9 @@ default_stylesheet = [
         'selector': '.followerEdge',
         "style": {
             "mid-target-arrow-color": "blue",
-            "mid-target-arrow-shape": "vee",
-            "line-color": "#0074D9"
+            "mid-target-arrow-shape": "double-tee", # засечка
+            "arrow-scale": 1, # размер засечки
+            "line-color": "#d90000"
         }
     },
     {
@@ -109,8 +110,8 @@ default_stylesheet = [
         'selector': '.followingEdge',
         "style": {
             "mid-target-arrow-color": "red",
-            "mid-target-arrow-shape": "vee",
-            "line-color": "#FF4136",
+            "mid-target-arrow-shape": "triangle",
+            "line-color": "#00d90e",
         }
     },
     {
@@ -169,9 +170,9 @@ app.layout = html.Div([
 
     html.Div(className='four columns', children=[
         dcc.Tabs(id='tabs', children=[
-            dcc.Tab(label='Control Panel', children=[
+            dcc.Tab(label='Панель управления', children=[
                 drc.NamedDropdown(
-                    name='Layout',
+                    name='Раскладка',
                     id='dropdown-layout',
                     options=drc.DropdownOptionsList(
                         'random',
@@ -181,11 +182,33 @@ app.layout = html.Div([
                         'breadthfirst',
                         'cose'
                     ),
-                    value='grid',
+                    value='concentric',
                     clearable=False
                 ),
+                drc.NamedDropdown(
+                    name='Засечка',
+                    id='dropdown-edge-arrow',
+                    value='double-tee',
+                    clearable=False,
+                    options=drc.DropdownOptionsList(
+                        'triangle',
+                        'triangle-tee',
+                        'circle-triangle',
+                        'triangle-cross',
+                        'triangle-backcurve',
+                        'vee',
+                        'tee',
+                        'square',
+                        'circle',
+                        'diamond',
+                        'chevron',
+                        'double-tee',
+                        'test',
+                        'none'
+                    )
+                ),
                 drc.NamedRadioItems(
-                    name='Expand',
+                    name='Что расширять',
                     id='radio-expand',
                     options=drc.DropdownOptionsList(
                         'followers',
@@ -206,7 +229,12 @@ app.layout = html.Div([
                     html.Pre(
                         id='tap-edge-json-output',
                         style=styles['json-output']
-                    )
+                    ),
+                    html.P('Drag Node JSON:'),
+                    html.Pre(
+                        id='drag-node-json-output',
+                        style=styles['json-output']
+                    ),
                 ])
             ])
         ]),
@@ -228,10 +256,34 @@ def display_tap_edge(data):
     return json.dumps(data, indent=2)
 
 
+@app.callback(Output('drag-node-json-output', 'children'),
+              [Input('cytoscape', 'dragNodeData')])
+def display_drag_node(data):
+    return json.dumps(data, indent=2)
+
+
 @app.callback(Output('cytoscape', 'layout'),
               [Input('dropdown-layout', 'value')])
 def update_cytoscape_layout(layout):
-    return {'name': layout}
+    return {'name': layout, 'animate': True}
+
+@app.callback(Output('cytoscape', 'stylesheet'),
+              Input('dropdown-edge-arrow', 'value'))
+def update_arrows(edge_arrow):
+    default_stylesheet.append({
+        "selector": '.followerEdge',
+        "style": {
+            "mid-target-arrow-shape": edge_arrow
+        }
+    })
+    default_stylesheet.append({
+        "selector": '.followingEdge',
+        "style": {
+            "mid-target-arrow-shape": edge_arrow
+        }
+    })
+
+    return default_stylesheet
 
 
 @app.callback(Output('cytoscape', 'elements'),

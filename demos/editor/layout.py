@@ -532,6 +532,7 @@ user_interface = html.Div(
                             'triangle',
                             'triangle-tee',
                             'triangle-cross',
+                            'double-tee',
                             'triangle-backcurve',
                             'vee',
                             'tee',

@@ -102,6 +102,8 @@ class Cytoscape extends Component {
         return nodeObject;
     }
 
+
+
     generateEdge(event) {
         const ele = event.target;
 
@@ -207,6 +209,32 @@ class Cytoscape extends Component {
         }, SELECT_THRESHOLD);
 
         // /////////////////////////////////////// EVENTS //////////////////////////////////////////
+        cy.on('grab', 'node', event => {
+            const nodeObject = this.generateNode(event);
+
+            const grabData = {node: nodeObject.data,
+                              oldCoords: nodeObject.relativePosition}
+
+            if (typeof this.props.setProps === 'function') {
+                this.props.setProps({
+                    grabNodeData: grabData,
+                });
+            }
+        });
+
+        cy.on('drag', 'node', event => {
+            const nodeObject = this.generateNode(event);
+
+            const dragData = {node: nodeObject.data,
+                              newCoords: nodeObject.relativePosition}
+
+            if (typeof this.props.setProps === 'function') {
+                this.props.setProps({
+                    dragNodeData: dragData,
+                });
+            }
+        });
+
         cy.on('tap', 'node', event => {
             const nodeObject = this.generateNode(event);
 
@@ -798,6 +826,20 @@ Cytoscape.propTypes = {
      * The data dictionary of a node returned when you tap or click it. Read-only.
      */
     tapNodeData: PropTypes.object,
+
+    /**
+     * grab - только схватили, drag - схватили и перетаскиваем
+     */
+     grabNodeData: PropTypes.exact({
+        node: PropTypes.object,
+        oldCoords: PropTypes.object
+    }),
+
+    dragNodeData: PropTypes.exact({
+        node: PropTypes.object,
+        newCoords: PropTypes.object
+    }),
+
 
     /**
      * The complete edge dictionary returned when you tap or click it. Read-only.
